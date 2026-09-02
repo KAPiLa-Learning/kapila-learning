@@ -32,20 +32,25 @@
   .stat-card .lbl{font-size:12.5px;color:var(--muted);}
   .intro-actions{margin-top:auto;padding:22px;}
   .btn-primary{width:100%;background:var(--purple);color:#fff;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:700;}
+  .btn-lb-intro{width:100%;margin-top:10px;background:var(--purple-light);color:var(--purple-dark);border:none;border-radius:16px;padding:14px;font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;}
 
-  /* test */
+  /* test - sticky header/footer via scroll containment */
+  #screen-test{height:100vh;height:100svh;overflow:hidden;}
+  .test-header{flex-shrink:0;position:sticky;top:0;z-index:15;background:#fff;}
   .test-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #EEF0F5;}
   .timer{font-weight:700;font-size:15px;}
   .qcount{font-weight:800;font-size:16px;}
+  .top-icons{display:flex;align-items:center;gap:4px;}
   .top-icons button{background:none;border:none;color:var(--purple);padding:4px;}
   .subject-tag{background:var(--grey-bg);padding:10px 18px;font-size:13px;color:var(--muted);font-weight:600;}
-  .qbody{background:var(--bg);flex:1;padding:22px 18px 10px;}
+  .qbody{background:var(--bg);flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:22px 18px 10px;}
   .qtext{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:20px;overflow-wrap:anywhere;white-space:pre-line;}
   .options{display:flex;flex-direction:column;gap:14px;}
   .option{display:flex;align-items:center;gap:16px;background:#fff;border:2px solid transparent;border-radius:16px;padding:14px 16px;box-shadow:0 4px 14px rgba(30,33,66,.05);overflow-wrap:anywhere;}
   .option .badge{width:34px;height:34px;border-radius:50%;background:var(--grey-bg);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
   .option.selected{border-color:var(--purple);background:var(--purple-light);}
   .option.selected .badge{background:var(--purple);color:#fff;}
+  .test-footer{flex-shrink:0;position:sticky;bottom:0;z-index:15;background:#fff;box-shadow:0 -6px 16px rgba(30,33,66,.06);}
   .qnav-arrows{display:flex;justify-content:space-between;padding:16px 26px;}
   .qnav-arrows button{background:none;border:none;color:var(--navy);}
   .test-actions{display:flex;gap:10px;padding:8px 18px 22px;}
@@ -57,11 +62,11 @@
   .overlay{position:fixed;inset:0;background:rgba(20,20,40,.45);display:none;align-items:flex-end;justify-content:center;z-index:50;}
   .overlay.active{display:flex;}
   .sheet{background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;}
-  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 8px;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 8px;flex-shrink:0;}
   .sheet-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;}
   .sheet-close{background:none;border:none;color:var(--navy);font-size:18px;}
   .sheet-body{padding:6px 20px 18px;overflow-y:auto;}
-  .tabs{display:flex;gap:8px;padding:10px 20px 4px;}
+  .tabs{display:flex;gap:8px;padding:10px 20px 4px;flex-shrink:0;}
   .tab{flex:1;text-align:center;padding:10px 4px;border-radius:12px;background:var(--grey-bg);font-weight:700;font-size:13px;border:none;}
   .tab.active{background:var(--purple);color:#fff;}
   .subj-block{margin-top:16px;}
@@ -71,10 +76,10 @@
   .qnum.saved{background:var(--green);}
   .qnum.marked{background:var(--purple);}
   .qnum.current{outline:3px solid var(--navy);outline-offset:2px;}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:16px 20px 4px;font-size:12px;color:var(--muted);}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:16px 20px 4px;font-size:12px;color:var(--muted);flex-shrink:0;}
   .legend span{display:inline-flex;align-items:center;gap:6px;font-weight:600;}
   .dot{width:10px;height:10px;border-radius:50%;}
-  .sheet-btn{margin:14px 20px 20px;border:1.6px solid #DADCE6;border-radius:14px;padding:14px;text-align:center;font-weight:700;background:#fff;}
+  .sheet-btn{margin:14px 20px 20px;border:1.6px solid #DADCE6;border-radius:14px;padding:14px;text-align:center;font-weight:700;background:#fff;flex-shrink:0;}
   .warn-icon{width:52px;height:52px;border-radius:50%;background:var(--red-bg);color:var(--red);display:flex;align-items:center;justify-content:center;margin:20px auto 14px;font-size:26px;font-weight:800;}
   .warn-title{text-align:center;font-size:18px;font-weight:800;}
   .warn-text{text-align:center;font-size:14px;color:var(--muted);padding:6px 20px 8px;line-height:1.6;}
@@ -83,9 +88,11 @@
   .warn-actions .leave{flex:1;background:#fff;border:1.6px solid #DADCE6;color:var(--red);border-radius:14px;padding:14px;font-weight:700;}
 
   /* result */
-  .res-top{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #EEF0F5;}
+  #screen-result{height:100vh;height:100svh;overflow:hidden;}
+  .res-top{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #EEF0F5;flex-shrink:0;position:sticky;top:0;z-index:15;background:#fff;}
   .res-top button{background:none;border:none;color:var(--navy);}
-  .res-body{padding:20px 18px;}
+  .res-body{padding:20px 18px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .already-note{margin-top:12px;background:var(--purple-light);color:var(--purple-dark);font-size:12.5px;font-weight:600;padding:10px 12px;border-radius:12px;line-height:1.5;}
   .res-badge{display:inline-block;background:var(--red-bg);color:var(--red);font-weight:800;font-size:13px;padding:6px 14px;border-radius:999px;}
   .res-badge.pass{background:var(--green-bg);color:#1C8A46;}
   .res-summary{display:flex;justify-content:space-between;align-items:flex-start;margin-top:6px;}
@@ -111,6 +118,7 @@
   .res-actions{display:flex;gap:10px;margin-top:24px;}
   .btn-perf{flex:1;background:var(--purple);color:#fff;border:none;border-radius:16px;padding:14px 6px;font-weight:700;font-size:14px;}
   .btn-sol{flex:1;background:#fff;border:1.6px solid #DADCE6;color:var(--navy);border-radius:16px;padding:14px 6px;font-weight:700;font-size:14px;}
+  .btn-lb{width:100%;background:var(--purple-light);color:var(--purple-dark);border:none;border-radius:14px;padding:14px;font-weight:700;font-size:13.5px;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;}
   .btn-back-list{width:100%;background:var(--grey-bg);border:none;color:var(--navy);border-radius:14px;padding:14px;font-weight:700;font-size:13.5px;margin-top:12px;}
 
   .perf-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid #F1F1F6;}
@@ -128,6 +136,17 @@
   .sol-opt.correct{background:var(--green-bg);color:#1C8A46;font-weight:700;}
   .sol-opt.wrong-pick{background:var(--red-bg);color:#C0293C;font-weight:700;}
   .sol-explain{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.6;background:#F8F8FC;padding:10px 12px;border-radius:10px;}
+
+  /* leaderboard */
+  .lb-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #F1F1F6;}
+  .lb-row.me{background:var(--purple-light);border-radius:12px;padding:12px 10px;border-bottom:none;}
+  .lb-rank{width:28px;height:28px;border-radius:50%;background:var(--grey-bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+  .lb-row:nth-child(1) .lb-rank{background:#FFD65A;color:#7A5B00;}
+  .lb-row:nth-child(2) .lb-rank{background:#D9DEE8;color:#40495C;}
+  .lb-row:nth-child(3) .lb-rank{background:#E8C09A;color:#7A4A1D;}
+  .lb-name{flex:1;font-weight:700;font-size:14px;overflow-wrap:anywhere;}
+  .lb-name small{display:block;color:var(--muted);font-weight:500;font-size:11px;}
+  .lb-score{font-weight:800;color:var(--purple-dark);font-size:14px;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -140,28 +159,35 @@
   <section id="screen-intro" class="screen"></section>
 
   <section id="screen-test" class="screen">
-    <div class="test-topbar">
-      <div class="timer" id="timerDisplay">Time: 00:00</div>
-      <div class="qcount" id="qCountDisplay">Q 1/1</div>
-      <div class="top-icons">
-        <button type="button" onclick="openNavigator()">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="currentColor"/></svg>
-        </button>
+    <div class="test-header">
+      <div class="test-topbar">
+        <div class="timer" id="timerDisplay">Time: 00:00</div>
+        <div class="qcount" id="qCountDisplay">Q 1/1</div>
+        <div class="top-icons">
+          <button type="button" onclick="openLeaderboard()" title="Leaderboard">
+            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5H5a2 2 0 0 0 2 4M16 5h3a2 2 0 0 1-2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12v3M9 19h6M10 19v-2a2 2 0 0 1 4 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" onclick="openNavigator()">
+            <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="currentColor"/></svg>
+          </button>
+        </div>
       </div>
+      <div class="subject-tag" id="subjectTag"></div>
     </div>
-    <div class="subject-tag" id="subjectTag"></div>
     <div class="qbody">
       <div class="qtext" id="qText"></div>
       <div class="options" id="qOptions"></div>
     </div>
-    <div class="qnav-arrows">
-      <button type="button" onclick="prevQ()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <button type="button" onclick="nextQ()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    </div>
-    <div class="test-actions">
-      <button class="btn-submit" type="button" onclick="askSubmit()">Submit Test</button>
-      <button class="btn-mark" type="button" onclick="markNext()">Mark &amp; Next</button>
-      <button class="btn-save" type="button" onclick="saveNext()">Save &amp; Next</button>
+    <div class="test-footer">
+      <div class="qnav-arrows">
+        <button type="button" onclick="prevQ()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" onclick="nextQ()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="test-actions">
+        <button class="btn-submit" type="button" onclick="askSubmit()">Submit Test</button>
+        <button class="btn-mark" type="button" onclick="markNext()">Mark &amp; Next</button>
+        <button class="btn-save" type="button" onclick="saveNext()">Save &amp; Next</button>
+      </div>
     </div>
   </section>
 
@@ -172,6 +198,7 @@
     </div>
     <div class="res-body">
       <span class="res-badge" id="resBadge">Needs Work</span>
+      <div class="already-note" id="alreadyNote" style="display:none;">તમે આ ટેસ્ટ પહેલેથી આપી ચૂક્યા છો, એટલે તમારું જૂનું પરિણામ બતાવવામાં આવી રહ્યું છે. આ ટેસ્ટ ફરીથી આપી શકાશે નહીં.</div>
       <div class="res-summary">
         <div class="score-block">
           <div class="score" id="resScore">0</div>
@@ -199,6 +226,7 @@
         <button class="btn-perf" type="button" onclick="openPerformance()">Performance</button>
         <button class="btn-sol" type="button" onclick="openSolution()">Solution</button>
       </div>
+      <button class="btn-lb" type="button" onclick="openLeaderboard()">🏆 Leaderboard જુઓ</button>
       <button class="btn-back-list" type="button" onclick="goToList()">← ટેસ્ટ યાદીમાં પાછા જાવ</button>
     </div>
   </section>
@@ -261,6 +289,14 @@
     </div>
   </div>
 
+  <div class="overlay" id="leaderboardOverlay">
+    <div class="sheet">
+      <div class="sheet-head"><div class="sheet-title">🏆 Leaderboard</div><button class="sheet-close" type="button" onclick="closeOverlay('leaderboardOverlay')">✕</button></div>
+      <div class="sheet-body" id="lbBody"></div>
+      <button class="sheet-btn" type="button" onclick="closeOverlay('leaderboardOverlay')">Close</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -308,6 +344,23 @@ async function loadQuiz(){
     NEG_MARK = Number(quiz.negative_marking) || 0;
     TIME_LIMIT = (quiz.time_limit_minutes || 30) * 60;
 
+    // જો આ user એ આ ટેસ્ટ પહેલેથી submit કરેલો હોય તો ફરીથી ટેસ્ટ ન આપવા દેવો, સીધું જૂનું પરિણામ બતાવવું
+    const { data: existingAttempt, error: exErr } = await supabaseClient
+      .from('quiz_attempts')
+      .select('*')
+      .eq('quiz_id', QUIZ_ID)
+      .eq('user_id', session.id)
+      .eq('status', 'submitted')
+      .order('submitted_at', { ascending:false })
+      .limit(1)
+      .maybeSingle();
+    if(exErr) console.error('existing attempt check failed', exErr);
+
+    if(existingAttempt){
+      await showExistingResult(existingAttempt);
+      return;
+    }
+
     renderIntro();
     show('screen-intro');
   }catch(err){
@@ -326,7 +379,8 @@ function renderIntro(){
       '<div class="stat-card"><div class="num">'+TOTAL+'</div><div class="lbl">કુલ પ્રશ્નો</div></div>'+
       '<div class="stat-card"><div class="num">'+(QUIZ.time_limit_minutes)+' મિનિટ</div><div class="lbl">સમય મર્યાદા</div></div>'+
     '</div>'+
-    '<div class="intro-actions"><button class="btn-primary" type="button" id="startBtn">ટેસ્ટ શરૂ કરો</button></div>';
+    '<div class="intro-actions"><button class="btn-primary" type="button" id="startBtn">ટેસ્ટ શરૂ કરો</button>'+
+      '<button class="btn-lb-intro" type="button" onclick="openLeaderboard()">🏆 Leaderboard જુઓ</button></div>';
   document.getElementById('startBtn').addEventListener('click', startTest);
 }
 
@@ -525,6 +579,40 @@ async function doSubmit(){
     }).eq('id', attemptId);
   }catch(err){ console.error('submit update failed', err); }
 
+  document.getElementById('alreadyNote').style.display = 'none';
+  renderResult(stats, timeTaken);
+  show('screen-result');
+}
+
+/* ---------------- ALREADY ATTEMPTED (NO RETAKE) ---------------- */
+async function showExistingResult(attempt){
+  attemptId = attempt.id;
+  let qAttempts = [];
+  try{
+    const { data, error } = await supabaseClient
+      .from('question_attempts')
+      .select('question_id, selected_option, is_marked')
+      .eq('quiz_attempt_id', attempt.id);
+    if(error) throw error;
+    qAttempts = data || [];
+  }catch(err){ console.error('load previous answers failed', err); }
+
+  answers = QUESTIONS.map(q=>{
+    const qa = qAttempts.find(x=>x.question_id===q.id);
+    if(!qa || !qa.selected_option) return { selected:null, status:(qa && qa.is_marked) ? 'marked' : 'skipped' };
+    return { selected: qa.selected_option, status: qa.is_marked ? 'marked' : 'saved' };
+  });
+
+  const stats = {
+    right: attempt.total_right ?? 0,
+    wrong: attempt.total_wrong ?? 0,
+    skip: attempt.total_skipped ?? 0,
+    mark: attempt.total_marked ?? 0,
+    score: attempt.score ?? 0
+  };
+  const timeTaken = attempt.time_taken_seconds || 0;
+
+  document.getElementById('alreadyNote').style.display = 'block';
   renderResult(stats, timeTaken);
   show('screen-result');
 }
@@ -615,6 +703,65 @@ function openSolution(){
     body.appendChild(item);
   });
   document.getElementById('solOverlay').classList.add('active');
+}
+
+/* ---------------- LEADERBOARD ---------------- */
+function openLeaderboard(){
+  document.getElementById('leaderboardOverlay').classList.add('active');
+  loadLeaderboard();
+}
+async function loadLeaderboard(){
+  const body = document.getElementById('lbBody');
+  body.innerHTML = '<div class="center-msg">Loading...</div>';
+  try{
+    // profiles ટેબલ સાથે join કરીને નામ મેળવવાનો પ્રયત્ન (ટેબલ ન હોય તો નીચે fallback થશે)
+    const { data, error } = await supabaseClient
+      .from('quiz_attempts')
+      .select('user_id, score, time_taken_seconds, profiles(full_name)')
+      .eq('quiz_id', QUIZ_ID)
+      .eq('status', 'submitted')
+      .order('score', { ascending:false })
+      .order('time_taken_seconds', { ascending:true })
+      .limit(20);
+    if(error) throw error;
+    renderLeaderboard(data||[]);
+  }catch(err){
+    console.error('leaderboard (with profiles) failed, retrying without join', err);
+    try{
+      const { data, error } = await supabaseClient
+        .from('quiz_attempts')
+        .select('user_id, score, time_taken_seconds')
+        .eq('quiz_id', QUIZ_ID)
+        .eq('status', 'submitted')
+        .order('score', { ascending:false })
+        .order('time_taken_seconds', { ascending:true })
+        .limit(20);
+      if(error) throw error;
+      renderLeaderboard(data||[]);
+    }catch(err2){
+      console.error(err2);
+      body.innerHTML = '<div class="center-msg">Leaderboard લોડ કરવામાં ભૂલ થઈ.</div>';
+    }
+  }
+}
+function renderLeaderboard(rows){
+  const body = document.getElementById('lbBody');
+  if(!rows.length){
+    body.innerHTML = '<div class="center-msg">હજુ સુધી કોઈ પરિણામ નથી.</div>';
+    return;
+  }
+  body.innerHTML = '';
+  rows.forEach((r,i)=>{
+    const name = (r.profiles && r.profiles.full_name) ? r.profiles.full_name : ('Student '+String(r.user_id).slice(0,6));
+    const isMe = r.user_id === session.id;
+    const mins = Math.floor((r.time_taken_seconds||0)/60), secs = (r.time_taken_seconds||0)%60;
+    const div = document.createElement('div');
+    div.className = 'lb-row'+(isMe?' me':'');
+    div.innerHTML = '<div class="lb-rank">'+(i+1)+'</div>'+
+      '<div class="lb-name">'+name+(isMe?' (તમે)':'')+'<small>સમય: '+mins+'m '+secs+'s</small></div>'+
+      '<div class="lb-score">'+r.score+'</div>';
+    body.appendChild(div);
+  });
 }
 
 loadQuiz();

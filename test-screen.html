@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ટેસ્ટ યાદી | KAPiLa Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  :root{--purple:#6C4CF0;--purple-dark:#5638D6;--purple-light:#EDE9FE;--navy:#1E2142;--muted:#6B7280;--bg:#F4F5FA;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{height:100%;}
+  body{margin:0;min-height:100%;font-family:'Noto Sans Gujarati',sans-serif;background:var(--bg);color:var(--navy);}
+  .shell{max-width:480px;margin:0 auto;min-height:100vh;min-height:100svh;background:#fff;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #EEF0F5;}
+  .who{font-weight:700;font-size:15px;}
+  .who span{color:var(--purple-dark);}
+  .logout{background:none;border:none;color:var(--muted);font-size:13px;font-weight:700;touch-action:manipulation;}
+  .list{padding:18px 18px 30px;display:flex;flex-direction:column;gap:16px;}
+  .qcard{background:#fff;border:1px solid #ECEAF7;border-radius:18px;padding:18px;box-shadow:0 6px 18px rgba(108,76,240,.06);}
+  .qcard h3{margin:0 0 6px;font-size:17px;}
+  .qcard p{margin:0 0 12px;font-size:13.5px;color:var(--muted);line-height:1.55;}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .meta span{background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;}
+  .startbtn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:13px;font-weight:700;font-size:14.5px;touch-action:manipulation;}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
+  .btn-telegram{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#229ED9;border:1.6px solid #229ED9;border-radius:14px;padding:13px;font-weight:700;font-size:14px;text-decoration:none;margin:6px 18px 24px;}
+  .icon{width:18px;height:18px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <button class="logout" type="button" onclick="location.href='home.html'" style="display:flex;align-items:center;gap:6px;">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <div class="who">નમસ્તે, <span id="unameDisplay"></span></div>
+  </div>
+  <div class="list" id="quizList">
+    <div class="empty">ટેસ્ટ લોડ થઈ રહ્યા છે...</div>
+  </div>
+  <a class="btn-telegram" href="https://t.me/KAPiLa_Institute" target="_blank" rel="noopener">
+    <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M21 4L2.5 11.3C1.9 11.5 1.9 12.4 2.5 12.6L7.2 14.2L9 20C9.2 20.6 10 20.7 10.3 20.2L12.7 16.8L17.4 20.3C17.9 20.7 18.7 20.4 18.8 19.8L22 5C22.1 4.3 21.6 3.8 21 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    ટેલિગ્રામ ચેનલમાં જોડાવો
+  </a>
+</div>
+
+<script>
+  const session = requireSession('index.html');
+  if(session){ document.getElementById('unameDisplay').textContent = session.username; }
+
+  function logout(){
+    clearSession();
+    location.href = 'index.html';
+  }
+
+  async function loadQuizzes(){
+    const listEl = document.getElementById('quizList');
+    try{
+      const { data, error } = await supabaseClient
+        .from('quizzes')
+        .select('id, title, description, total_questions, time_limit_minutes, negative_marking')
+        .eq('is_published', true)
+        .order('created_at', { ascending:false });
+
+      if(error) throw error;
+
+      if(!data || data.length===0){
+        listEl.innerHTML = '<div class="empty">હાલમાં કોઈ ટેસ્ટ ઉપલબ્ધ નથી.</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      data.forEach(q=>{
+        const card = document.createElement('div');
+        card.className = 'qcard';
+        card.innerHTML =
+          '<h3>'+q.title+'</h3>'+
+          (q.description ? '<p>'+q.description+'</p>' : '') +
+          '<div class="meta">'+
+            '<span>'+q.total_questions+' પ્રશ્નો</span>'+
+            '<span>'+q.time_limit_minutes+' મિનિટ</span>'+
+            '<span>-'+q.negative_marking+' નેગેટિવ</span>'+
+          '</div>'+
+          '<button class="startbtn" type="button">ટેસ્ટ શરૂ કરો</button>';
+        card.querySelector('.startbtn').addEventListener('click', ()=>{
+          location.href = 'test-engine.html?quiz=' + q.id;
+        });
+        listEl.appendChild(card);
+      });
+
+    }catch(err){
+      console.error(err);
+      listEl.innerHTML = '<div class="empty">ટેસ્ટ લોડ કરવામાં ભૂલ થઈ. ફરી પ્રયત્ન કરો.</div>';
+    }
+  }
+
+  loadQuizzes();
+</script>
+</body>
+</html>

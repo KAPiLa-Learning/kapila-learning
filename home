@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KAPiLa Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  :root{--purple:#6C4CF0;--purple-dark:#5638D6;--purple-light:#EDE9FE;--cream:#FBF1E4;--navy:#1E2142;--muted:#6B7280;--bg:#F4F5FA;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{height:100%;}
+  body{margin:0;min-height:100%;font-family:'Noto Sans Gujarati',sans-serif;background:var(--bg);color:var(--navy);}
+  .shell{max-width:480px;margin:0 auto;min-height:100vh;min-height:100svh;background:#fff;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;}
+  .who{font-size:13.5px;color:var(--muted);font-weight:600;}
+  .who span{color:var(--purple-dark);font-weight:800;}
+  .logout{background:none;border:none;color:var(--muted);font-size:13px;font-weight:700;touch-action:manipulation;}
+
+  .hero{background:linear-gradient(180deg,var(--cream) 0%,#F6F1FB 100%);padding:6px 22px 30px;text-align:center;}
+  .brand-avatar{width:64px;height:64px;border-radius:20px;background:var(--purple);color:#fff;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+  .brand-name{font-weight:800;font-size:23px;}
+  .brand-sub{font-size:13.5px;color:var(--muted);margin-top:4px;}
+
+  .section-title{padding:22px 22px 12px;font-size:16px;font-weight:800;}
+  .series-card{margin:0 22px;background:linear-gradient(145deg,var(--purple) 0%,#8A6CF6 100%);border-radius:20px;padding:22px;color:#fff;position:relative;overflow:hidden;touch-action:manipulation;}
+  .series-card h3{margin:0 0 8px;font-size:19px;font-weight:800;}
+  .series-card p{margin:0 0 16px;font-size:13.5px;line-height:1.6;opacity:.95;}
+  .series-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .series-meta span{background:rgba(255,255,255,.18);font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;}
+  .series-cta{display:flex;align-items:center;justify-content:space-between;background:#fff;color:var(--purple-dark);border-radius:12px;padding:12px 16px;font-weight:700;font-size:14px;}
+
+  .btn-telegram{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#229ED9;border:1.6px solid #229ED9;border-radius:14px;padding:13px;font-weight:700;font-size:14px;text-decoration:none;margin:24px 22px 24px;}
+  .icon{width:18px;height:18px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="who">નમસ્તે, <span id="unameDisplay"></span></div>
+    <button class="logout" type="button" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="hero">
+    <div class="brand-avatar">K</div>
+    <div class="brand-name">KAPiLa Learning</div>
+    <div class="brand-sub">ગુજરાત સરકારની પરીક્ષા માટે ટેસ્ટ સિરીઝ</div>
+  </div>
+
+  <div class="section-title">ટેસ્ટ સિરીઝ</div>
+  <div class="series-card" id="seriesCard">
+    <h3>CCE મોક ટેસ્ટ સિરીઝ</h3>
+    <p>ગુજરાત સરકારની CCE (કમ્બાઈન્ડ કોમ્પિટિટિવ એક્ઝામ) ની નવી પેટર્ન મુજબ તૈયાર થયેલ મોક ટેસ્ટ — ગણિત, રિઝનિંગ, વ્યાકરણ, બંધારણ, ઇતિહાસ અને વિજ્ઞાન સહિત.</p>
+    <div class="series-meta">
+      <span>MCQ ફોર્મેટ</span>
+      <span>નેગેટિવ માર્કિંગ</span>
+    </div>
+    <div class="series-cta">
+      <span>ટેસ્ટ યાદી જુઓ</span>
+      <span>→</span>
+    </div>
+  </div>
+
+  <a class="btn-telegram" href="https://t.me/KAPiLa_Institute" target="_blank" rel="noopener">
+    <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M21 4L2.5 11.3C1.9 11.5 1.9 12.4 2.5 12.6L7.2 14.2L9 20C9.2 20.6 10 20.7 10.3 20.2L12.7 16.8L17.4 20.3C17.9 20.7 18.7 20.4 18.8 19.8L22 5C22.1 4.3 21.6 3.8 21 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    ટેલિગ્રામ ચેનલમાં જોડાવો
+  </a>
+</div>
+
+<script>
+  const session = requireSession('index.html');
+  if(session){ document.getElementById('unameDisplay').textContent = session.username; }
+
+  function logout(){
+    clearSession();
+    location.href = 'index.html';
+  }
+
+  document.getElementById('seriesCard').addEventListener('click', ()=>{
+    location.href = 'test-screen.html';
+  });
+</script>
+</body>
+</html>

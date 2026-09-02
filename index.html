@@ -41,7 +41,7 @@
 <script>
   // પહેલેથી session હોય તો સીધું આગળ મોકલો
   if (getSession()) {
-    location.href = "test-screen.html";
+    location.href = "home.html";
   }
 
   function showError(msg){
@@ -94,7 +94,7 @@
       if(insErr) throw insErr;
 
       setSession(created);
-      location.href = 'test-screen.html';
+      location.href = 'home.html';
 
     }catch(err){
       console.error(err);
@@ -109,5 +109,3 @@
 </script>
 </body>
 </html>
-
-

@@ -19,27 +19,34 @@
   label{font-size:13.5px;font-weight:700;color:var(--navy);display:block;margin-bottom:8px;}
   input{width:100%;padding:15px 16px;border-radius:14px;border:1.6px solid #DADCE6;font-size:16px;font-family:inherit;outline:none;}
   input:focus{border-color:var(--purple);}
+  .field{margin-top:16px;}
   .err{color:var(--red);background:var(--red-bg);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px;display:none;font-weight:600;}
   button{width:100%;margin-top:18px;background:var(--purple);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;touch-action:manipulation;}
   button:disabled{opacity:.6;}
-  .hint{text-align:center;color:var(--muted);font-size:12.5px;margin-top:16px;}
+  .hint{text-align:center;color:var(--muted);font-size:12.5px;margin-top:16px;line-height:1.6;}
 </style>
 </head>
 <body>
 <div class="shell">
   <div class="logo">K</div>
   <h1>KAPiLa Learning</h1>
-  <p class="sub">શરૂ કરવા માટે તમારું username બનાવો</p>
+  <p class="sub">Username અને PIN નાખો</p>
 
-  <label for="uname">Username (unique)</label>
-  <input id="uname" type="text" placeholder="દા.ત. ravi_patel" autocomplete="off" maxlength="24">
+  <div class="field">
+    <label for="uname">Username</label>
+    <input id="uname" type="text" placeholder="દા.ત. ravi_patel" autocomplete="off" maxlength="24">
+  </div>
+  <div class="field">
+    <label for="pin">PIN (4-6 અંક)</label>
+    <input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off" maxlength="6">
+  </div>
+
   <div class="err" id="errBox"></div>
   <button id="loginBtn" type="button" onclick="handleLogin()">શરૂ કરો</button>
-  <p class="hint">પાસવર્ડની જરૂર નથી — username યાદ રાખો, ફરી આ જ ડિવાઈસ/બ્રાઉઝર પર આપોઆપ લોગિન રહેશે.</p>
+  <p class="hint">પહેલી વાર હોય તો આ username+PIN થી નવું એકાઉન્ટ બની જશે.<br>પછીની વાર એ જ PIN નાખવો પડશે — બીજું કોઈ તમારું username વાપરીને લોગિન નહીં કરી શકે.</p>
 </div>
 
 <script>
-  // પહેલેથી session હોય તો સીધું આગળ મોકલો
   if (getSession()) {
     location.href = "home.html";
   }
@@ -52,58 +59,69 @@
   function hideError(){
     document.getElementById('errBox').style.display = 'none';
   }
-
   function normalizeUsername(v){
     return v.trim().toLowerCase().replace(/\s+/g,'_');
+  }
+  function setBtnLoading(loading, label){
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = loading;
+    btn.textContent = label;
   }
 
   async function handleLogin(){
     hideError();
-    const raw = document.getElementById('uname').value;
-    const uname = normalizeUsername(raw);
+    const uname = normalizeUsername(document.getElementById('uname').value);
+    const pin = document.getElementById('pin').value.trim();
+
     if(!uname || uname.length < 3){
       showError('ઓછામાં ઓછા 3 અક્ષરનું username લખો.');
       return;
     }
-    const btn = document.getElementById('loginBtn');
-    btn.disabled = true; btn.textContent = 'ચેક કરી રહ્યા છીએ...';
+    if(!/^[0-9]{4,6}$/.test(pin)){
+      showError('PIN 4 થી 6 અંકનો હોવો જોઈએ.');
+      return;
+    }
 
-    try{
-      // username પહેલેથી છે કે નહીં ચેક કરો
-      const { data: existing, error: selErr } = await supabaseClient
-        .from('profiles')
-        .select('id, username')
-        .eq('username', uname)
-        .maybeSingle();
+    setBtnLoading(true, 'ચેક કરી રહ્યા છીએ...');
 
-      if(selErr) throw selErr;
+    const { data: loginData, error: loginErr } = await supabaseClient
+      .rpc('login_profile', { p_username: uname, p_pin: pin });
 
-      if(existing){
-        showError('આ username પહેલેથી લેવાયેલું છે. બીજું ટ્રાય કરો.');
-        btn.disabled = false; btn.textContent = 'શરૂ કરો';
+    if(!loginErr && loginData && loginData.length){
+      setSession(loginData[0]);
+      location.href = 'home.html';
+      return;
+    }
+
+    const loginMsg = (loginErr && loginErr.message) || '';
+
+    if(loginMsg.includes('USER_NOT_FOUND')){
+      const { data: signupData, error: signupErr } = await supabaseClient
+        .rpc('signup_profile', { p_username: uname, p_pin: pin });
+
+      if(signupErr){
+        const m = signupErr.message || '';
+        if(m.includes('USERNAME_TAKEN')) showError('આ username હમણાં જ કોઈએ લઈ લીધું, ફરી ટ્રાય કરો.');
+        else if(m.includes('INVALID_PIN')) showError('PIN 4 થી 6 અંકનો હોવો જોઈએ.');
+        else showError('કંઈક ભૂલ થઈ. ફરી પ્રયત્ન કરો.');
+        setBtnLoading(false, 'શરૂ કરો');
         return;
       }
-
-      // નવો profile બનાવો
-      const { data: created, error: insErr } = await supabaseClient
-        .from('profiles')
-        .insert({ username: uname })
-        .select()
-        .single();
-
-      if(insErr) throw insErr;
-
-      setSession(created);
+      setSession(signupData[0]);
       location.href = 'home.html';
-
-    }catch(err){
-      console.error(err);
-      showError('કંઈક ભૂલ થઈ. ફરી પ્રયત્ન કરો.');
-      btn.disabled = false; btn.textContent = 'શરૂ કરો';
+      return;
     }
+
+    if(loginMsg.includes('INVALID_PIN')){
+      showError('ખોટો PIN. ફરી પ્રયત્ન કરો.');
+    } else {
+      console.error(loginErr);
+      showError('કંઈક ભૂલ થઈ. ફરી પ્રયત્ન કરો.');
+    }
+    setBtnLoading(false, 'શરૂ કરો');
   }
 
-  document.getElementById('uname').addEventListener('keydown', (e)=>{
+  document.getElementById('pin').addEventListener('keydown', (e)=>{
     if(e.key === 'Enter') handleLogin();
   });
 </script>

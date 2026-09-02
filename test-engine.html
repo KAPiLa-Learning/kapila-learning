@@ -40,7 +40,7 @@
   .top-icons button{background:none;border:none;color:var(--purple);padding:4px;}
   .subject-tag{background:var(--grey-bg);padding:10px 18px;font-size:13px;color:var(--muted);font-weight:600;}
   .qbody{background:var(--bg);flex:1;padding:22px 18px 10px;}
-  .qtext{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:20px;overflow-wrap:anywhere;}
+  .qtext{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:20px;overflow-wrap:anywhere;white-space:pre-line;}
   .options{display:flex;flex-direction:column;gap:14px;}
   .option{display:flex;align-items:center;gap:16px;background:#fff;border:2px solid transparent;border-radius:16px;padding:14px 16px;box-shadow:0 4px 14px rgba(30,33,66,.05);overflow-wrap:anywhere;}
   .option .badge{width:34px;height:34px;border-radius:50%;background:var(--grey-bg);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
@@ -123,7 +123,7 @@
   .pill.s{background:var(--grey-bg);color:#57606F;}
 
   .sol-item{border-bottom:1px solid #F1F1F6;padding:16px 0;}
-  .sol-q{font-weight:700;font-size:14px;margin-bottom:10px;overflow-wrap:anywhere;}
+  .sol-q{font-weight:700;font-size:14px;margin-bottom:10px;overflow-wrap:anywhere;white-space:pre-line;}
   .sol-opt{font-size:13px;padding:8px 10px;border-radius:10px;margin-bottom:6px;background:var(--grey-bg);overflow-wrap:anywhere;}
   .sol-opt.correct{background:var(--green-bg);color:#1C8A46;font-weight:700;}
   .sol-opt.wrong-pick{background:var(--red-bg);color:#C0293C;font-weight:700;}
@@ -293,7 +293,7 @@ async function loadQuiz(){
   try{
     const [{data:quiz, error:qzErr}, {data:questions, error:qErr}, {data:subjects, error:subErr}] = await Promise.all([
       supabaseClient.from('quizzes').select('*').eq('id', QUIZ_ID).single(),
-      supabaseClient.from('questions').select('*').eq('quiz_id', QUIZ_ID).order('order_no'),
+      supabaseClient.from('questions').select('*').eq('quiz_id', QUIZ_ID).order('question_number'),
       supabaseClient.from('subjects').select('code,name')
     ]);
     if(qzErr) throw qzErr;

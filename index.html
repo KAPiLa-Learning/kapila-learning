@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KAPiLa Learning — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  :root{--purple:#6C4CF0;--purple-dark:#5638D6;--navy:#1E2142;--muted:#6B7280;--red:#F2495C;--red-bg:#FDE3E6;--bg:#F4F5FA;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{height:100%;}
+  body{margin:0;min-height:100%;font-family:'Noto Sans Gujarati',sans-serif;background:var(--bg);color:var(--navy);}
+  .shell{max-width:420px;margin:0 auto;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:28px;}
+  .logo{width:64px;height:64px;border-radius:18px;background:var(--purple);color:#fff;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+  h1{text-align:center;font-size:22px;margin:0 0 6px;}
+  p.sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 28px;}
+  label{font-size:13.5px;font-weight:700;color:var(--navy);display:block;margin-bottom:8px;}
+  input{width:100%;padding:15px 16px;border-radius:14px;border:1.6px solid #DADCE6;font-size:16px;font-family:inherit;outline:none;}
+  input:focus{border-color:var(--purple);}
+  .err{color:var(--red);background:var(--red-bg);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px;display:none;font-weight:600;}
+  button{width:100%;margin-top:18px;background:var(--purple);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;touch-action:manipulation;}
+  button:disabled{opacity:.6;}
+  .hint{text-align:center;color:var(--muted);font-size:12.5px;margin-top:16px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="logo">K</div>
+  <h1>KAPiLa Learning</h1>
+  <p class="sub">શરૂ કરવા માટે તમારું username બનાવો</p>
+
+  <label for="uname">Username (unique)</label>
+  <input id="uname" type="text" placeholder="દા.ત. ravi_patel" autocomplete="off" maxlength="24">
+  <div class="err" id="errBox"></div>
+  <button id="loginBtn" type="button" onclick="handleLogin()">શરૂ કરો</button>
+  <p class="hint">પાસવર્ડની જરૂર નથી — username યાદ રાખો, ફરી આ જ ડિવાઈસ/બ્રાઉઝર પર આપોઆપ લોગિન રહેશે.</p>
+</div>
+
+<script>
+  // પહેલેથી session હોય તો સીધું આગળ મોકલો
+  if (getSession()) {
+    location.href = "test-screen.html";
+  }
+
+  function showError(msg){
+    const e = document.getElementById('errBox');
+    e.textContent = msg;
+    e.style.display = 'block';
+  }
+  function hideError(){
+    document.getElementById('errBox').style.display = 'none';
+  }
+
+  function normalizeUsername(v){
+    return v.trim().toLowerCase().replace(/\s+/g,'_');
+  }
+
+  async function handleLogin(){
+    hideError();
+    const raw = document.getElementById('uname').value;
+    const uname = normalizeUsername(raw);
+    if(!uname || uname.length < 3){
+      showError('ઓછામાં ઓછા 3 અક્ષરનું username લખો.');
+      return;
+    }
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'ચેક કરી રહ્યા છીએ...';
+
+    try{
+      // username પહેલેથી છે કે નહીં ચેક કરો
+      const { data: existing, error: selErr } = await supabaseClient
+        .from('profiles')
+        .select('id, username')
+        .eq('username', uname)
+        .maybeSingle();
+
+      if(selErr) throw selErr;
+
+      if(existing){
+        showError('આ username પહેલેથી લેવાયેલું છે. બીજું ટ્રાય કરો.');
+        btn.disabled = false; btn.textContent = 'શરૂ કરો';
+        return;
+      }
+
+      // નવો profile બનાવો
+      const { data: created, error: insErr } = await supabaseClient
+        .from('profiles')
+        .insert({ username: uname })
+        .select()
+        .single();
+
+      if(insErr) throw insErr;
+
+      setSession(created);
+      location.href = 'test-screen.html';
+
+    }catch(err){
+      console.error(err);
+      showError('કંઈક ભૂલ થઈ. ફરી પ્રયત્ન કરો.');
+      btn.disabled = false; btn.textContent = 'શરૂ કરો';
+    }
+  }
+
+  document.getElementById('uname').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') handleLogin();
+  });
+</script>
+</body>
+</html>
+
 

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Test Engine | KAPiLa Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  :root{
+    --purple:#6C4CF0;--purple-dark:#5638D6;--purple-light:#EDE9FE;--navy:#1E2142;--muted:#6B7280;
+    --green:#22C55E;--green-bg:#DDF7E4;--red:#F2495C;--red-bg:#FDE3E6;--grey:#9CA3AF;--grey-bg:#EEF1F5;--bg:#F4F5FA;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{height:100%;}
+  body{margin:0;min-height:100%;font-family:'Noto Sans Gujarati',sans-serif;background:var(--bg);color:var(--navy);-webkit-text-size-adjust:100%;}
+  button{font-family:inherit;cursor:pointer;touch-action:manipulation;}
+  .icon{width:20px;height:20px;vertical-align:middle;pointer-events:none;}
+  .app-shell{max-width:480px;margin:0 auto;min-height:100vh;min-height:100svh;background:#fff;box-shadow:0 0 50px rgba(30,33,66,.08);overflow-x:hidden;}
+  .screen{display:none;flex-direction:column;min-height:100vh;min-height:100svh;}
+  .screen.active{display:flex;}
+  .center-msg{margin:auto;text-align:center;color:var(--muted);padding:30px;}
+
+  /* intro */
+  .hero-card{margin:22px;background:linear-gradient(145deg,var(--purple) 0%,#8A6CF6 100%);border-radius:20px;padding:26px 22px;color:#fff;}
+  .hero-title{font-size:23px;font-weight:800;margin:0 0 10px;}
+  .hero-desc{font-size:14px;line-height:1.6;opacity:.95;margin:0;}
+  .stat-cards{padding:6px 22px;display:flex;flex-direction:column;gap:12px;}
+  .stat-card{background:#fff;border:1px solid #ECEAF7;border-radius:14px;padding:14px;text-align:center;box-shadow:0 6px 16px rgba(108,76,240,.06);}
+  .stat-card .num{font-size:22px;font-weight:800;color:var(--purple-dark);}
+  .stat-card .lbl{font-size:12.5px;color:var(--muted);}
+  .intro-actions{margin-top:auto;padding:22px;}
+  .btn-primary{width:100%;background:var(--purple);color:#fff;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:700;}
+
+  /* test */
+  .test-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #EEF0F5;}
+  .timer{font-weight:700;font-size:15px;}
+  .qcount{font-weight:800;font-size:16px;}
+  .top-icons button{background:none;border:none;color:var(--purple);padding:4px;}
+  .subject-tag{background:var(--grey-bg);padding:10px 18px;font-size:13px;color:var(--muted);font-weight:600;}
+  .qbody{background:var(--bg);flex:1;padding:22px 18px 10px;}
+  .qtext{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:20px;overflow-wrap:anywhere;}
+  .options{display:flex;flex-direction:column;gap:14px;}
+  .option{display:flex;align-items:center;gap:16px;background:#fff;border:2px solid transparent;border-radius:16px;padding:14px 16px;box-shadow:0 4px 14px rgba(30,33,66,.05);overflow-wrap:anywhere;}
+  .option .badge{width:34px;height:34px;border-radius:50%;background:var(--grey-bg);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+  .option.selected{border-color:var(--purple);background:var(--purple-light);}
+  .option.selected .badge{background:var(--purple);color:#fff;}
+  .qnav-arrows{display:flex;justify-content:space-between;padding:16px 26px;}
+  .qnav-arrows button{background:none;border:none;color:var(--navy);}
+  .test-actions{display:flex;gap:10px;padding:8px 18px 22px;}
+  .btn-submit{flex:1.1;background:var(--red);color:#fff;border:none;border-radius:14px;padding:15px 6px;font-weight:700;font-size:14.5px;}
+  .btn-mark{flex:1;background:#fff;border:1.6px solid #DADCE6;color:var(--navy);border-radius:14px;padding:15px 4px;font-weight:700;font-size:13.5px;}
+  .btn-save{flex:1;background:var(--grey-bg);border:none;color:var(--navy);border-radius:14px;padding:15px 4px;font-weight:700;font-size:13.5px;}
+
+  /* overlays */
+  .overlay{position:fixed;inset:0;background:rgba(20,20,40,.45);display:none;align-items:flex-end;justify-content:center;z-index:50;}
+  .overlay.active{display:flex;}
+  .sheet{background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 8px;}
+  .sheet-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .sheet-close{background:none;border:none;color:var(--navy);font-size:18px;}
+  .sheet-body{padding:6px 20px 18px;overflow-y:auto;}
+  .tabs{display:flex;gap:8px;padding:10px 20px 4px;}
+  .tab{flex:1;text-align:center;padding:10px 4px;border-radius:12px;background:var(--grey-bg);font-weight:700;font-size:13px;border:none;}
+  .tab.active{background:var(--purple);color:#fff;}
+  .subj-block{margin-top:16px;}
+  .subj-block-head{display:flex;justify-content:space-between;font-weight:800;font-size:14px;margin-bottom:10px;}
+  .qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .qnum{aspect-ratio:1;border-radius:14px;border:none;color:#fff;font-weight:700;font-size:14px;background:var(--red);}
+  .qnum.saved{background:var(--green);}
+  .qnum.marked{background:var(--purple);}
+  .qnum.current{outline:3px solid var(--navy);outline-offset:2px;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:16px 20px 4px;font-size:12px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-weight:600;}
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .sheet-btn{margin:14px 20px 20px;border:1.6px solid #DADCE6;border-radius:14px;padding:14px;text-align:center;font-weight:700;background:#fff;}
+  .warn-icon{width:52px;height:52px;border-radius:50%;background:var(--red-bg);color:var(--red);display:flex;align-items:center;justify-content:center;margin:20px auto 14px;font-size:26px;font-weight:800;}
+  .warn-title{text-align:center;font-size:18px;font-weight:800;}
+  .warn-text{text-align:center;font-size:14px;color:var(--muted);padding:6px 20px 8px;line-height:1.6;}
+  .warn-actions{display:flex;gap:10px;padding:16px 20px 22px;}
+  .warn-actions .stay{flex:1;background:var(--purple);color:#fff;border:none;border-radius:14px;padding:14px;font-weight:700;}
+  .warn-actions .leave{flex:1;background:#fff;border:1.6px solid #DADCE6;color:var(--red);border-radius:14px;padding:14px;font-weight:700;}
+
+  /* result */
+  .res-top{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #EEF0F5;}
+  .res-top button{background:none;border:none;color:var(--navy);}
+  .res-body{padding:20px 18px;}
+  .res-badge{display:inline-block;background:var(--red-bg);color:var(--red);font-weight:800;font-size:13px;padding:6px 14px;border-radius:999px;}
+  .res-badge.pass{background:var(--green-bg);color:#1C8A46;}
+  .res-summary{display:flex;justify-content:space-between;align-items:flex-start;margin-top:6px;}
+  .score-block .score{font-size:28px;font-weight:800;}
+  .score-block .outof{font-size:13px;color:var(--muted);font-weight:600;}
+  .score-block .time{margin-top:14px;font-size:13px;color:var(--muted);}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:56%;}
+  .sbox{border-radius:14px;padding:12px 6px;text-align:center;}
+  .sbox .n{font-size:20px;font-weight:800;}
+  .sbox .l{font-size:11px;font-weight:700;}
+  .sbox.right{background:var(--green-bg);color:#1C8A46;}
+  .sbox.wrong{background:var(--red-bg);color:#C0293C;}
+  .sbox.skip{background:var(--grey-bg);color:#57606F;}
+  .sbox.mark{background:var(--purple-light);color:var(--purple-dark);}
+  .donuts{display:flex;gap:14px;margin-top:22px;}
+  .donut-card{flex:1;background:var(--grey-bg);border-radius:18px;padding:16px;text-align:center;}
+  .donut-card h4{margin:0 0 12px;font-size:14px;text-align:left;}
+  .donut{width:110px;height:110px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;}
+  .donut::after{content:'';position:absolute;width:58px;height:58px;background:var(--grey-bg);border-radius:50%;}
+  .donut .center-txt{position:relative;z-index:1;font-weight:800;font-size:14px;}
+  .legend2{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:18px;font-size:12px;color:var(--muted);font-weight:600;}
+  .legend2 span{display:inline-flex;align-items:center;gap:6px;}
+  .res-actions{display:flex;gap:10px;margin-top:24px;}
+  .btn-perf{flex:1;background:var(--purple);color:#fff;border:none;border-radius:16px;padding:14px 6px;font-weight:700;font-size:14px;}
+  .btn-sol{flex:1;background:#fff;border:1.6px solid #DADCE6;color:var(--navy);border-radius:16px;padding:14px 6px;font-weight:700;font-size:14px;}
+  .btn-back-list{width:100%;background:var(--grey-bg);border:none;color:var(--navy);border-radius:14px;padding:14px;font-weight:700;font-size:13.5px;margin-top:12px;}
+
+  .perf-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid #F1F1F6;}
+  .perf-name{font-weight:700;font-size:14px;}
+  .perf-name small{display:block;color:var(--muted);font-weight:500;font-size:11.5px;}
+  .perf-nums{display:flex;gap:8px;}
+  .pill{font-size:11.5px;font-weight:800;padding:5px 9px;border-radius:999px;}
+  .pill.g{background:var(--green-bg);color:#1C8A46;}
+  .pill.r{background:var(--red-bg);color:#C0293C;}
+  .pill.s{background:var(--grey-bg);color:#57606F;}
+
+  .sol-item{border-bottom:1px solid #F1F1F6;padding:16px 0;}
+  .sol-q{font-weight:700;font-size:14px;margin-bottom:10px;overflow-wrap:anywhere;}
+  .sol-opt{font-size:13px;padding:8px 10px;border-radius:10px;margin-bottom:6px;background:var(--grey-bg);overflow-wrap:anywhere;}
+  .sol-opt.correct{background:var(--green-bg);color:#1C8A46;font-weight:700;}
+  .sol-opt.wrong-pick{background:var(--red-bg);color:#C0293C;font-weight:700;}
+  .sol-explain{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.6;background:#F8F8FC;padding:10px 12px;border-radius:10px;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <section id="screen-loading" class="screen active">
+    <div class="center-msg">ટેસ્ટ લોડ થઈ રહ્યો છે...</div>
+  </section>
+
+  <section id="screen-intro" class="screen"></section>
+
+  <section id="screen-test" class="screen">
+    <div class="test-topbar">
+      <div class="timer" id="timerDisplay">Time: 00:00</div>
+      <div class="qcount" id="qCountDisplay">Q 1/1</div>
+      <div class="top-icons">
+        <button type="button" onclick="openNavigator()">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="subject-tag" id="subjectTag"></div>
+    <div class="qbody">
+      <div class="qtext" id="qText"></div>
+      <div class="options" id="qOptions"></div>
+    </div>
+    <div class="qnav-arrows">
+      <button type="button" onclick="prevQ()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button type="button" onclick="nextQ()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="test-actions">
+      <button class="btn-submit" type="button" onclick="askSubmit()">Submit Test</button>
+      <button class="btn-mark" type="button" onclick="markNext()">Mark &amp; Next</button>
+      <button class="btn-save" type="button" onclick="saveNext()">Save &amp; Next</button>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="res-top">
+      <button type="button" onclick="goToList()"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 style="margin:0;font-size:20px;">Result</h2>
+    </div>
+    <div class="res-body">
+      <span class="res-badge" id="resBadge">Needs Work</span>
+      <div class="res-summary">
+        <div class="score-block">
+          <div class="score" id="resScore">0</div>
+          <div class="outof" id="resOutOf">out of 0</div>
+          <div class="time" id="resTime">Time Taken: 0m 0s</div>
+        </div>
+        <div class="stat-grid">
+          <div class="sbox right"><div class="n" id="resRight">0</div><div class="l">Right</div></div>
+          <div class="sbox wrong"><div class="n" id="resWrong">0</div><div class="l">Wrong</div></div>
+          <div class="sbox skip"><div class="n" id="resSkip">0</div><div class="l">Skipped</div></div>
+          <div class="sbox mark"><div class="n" id="resMark">0</div><div class="l">Marked</div></div>
+        </div>
+      </div>
+      <div class="donuts">
+        <div class="donut-card"><h4>Counts</h4><div class="donut" id="donutCounts"><span class="center-txt" id="donutTotalTxt">0</span></div></div>
+        <div class="donut-card"><h4>Percentage</h4><div class="donut" id="donutPct"><span class="center-txt" id="pctText">0%</span></div></div>
+      </div>
+      <div class="legend2">
+        <span><i class="dot" style="background:var(--green)"></i>Right</span>
+        <span><i class="dot" style="background:var(--red)"></i>Wrong</span>
+        <span><i class="dot" style="background:var(--grey)"></i>Skipped</span>
+        <span><i class="dot" style="background:var(--purple)"></i>Marked</span>
+      </div>
+      <div class="res-actions">
+        <button class="btn-perf" type="button" onclick="openPerformance()">Performance</button>
+        <button class="btn-sol" type="button" onclick="openSolution()">Solution</button>
+      </div>
+      <button class="btn-back-list" type="button" onclick="goToList()">← ટેસ્ટ યાદીમાં પાછા જાવ</button>
+    </div>
+  </section>
+
+  <div class="overlay" id="navOverlay">
+    <div class="sheet">
+      <div class="sheet-head"><div class="sheet-title">Question Navigator</div><button class="sheet-close" type="button" onclick="closeOverlay('navOverlay')">✕</button></div>
+      <div class="tabs" id="navTabs">
+        <button class="tab active" type="button" data-filter="all">All</button>
+        <button class="tab" type="button" data-filter="skipped">Skipped</button>
+        <button class="tab" type="button" data-filter="marked">Mark &amp; Review</button>
+      </div>
+      <div class="sheet-body" id="navBody"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--green)"></i>Saved</span>
+        <span><i class="dot" style="background:var(--purple)"></i>Mark &amp; Review</span>
+        <span><i class="dot" style="background:var(--red)"></i>Skipped</span>
+      </div>
+      <button class="sheet-btn" type="button" onclick="closeOverlay('navOverlay')">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="exitOverlay">
+    <div class="sheet">
+      <div class="warn-icon">!</div>
+      <div class="warn-title">ટેસ્ટ છોડવા માંગો છો?</div>
+      <div class="warn-text">બહાર જશો તો પ્રોગ્રેસ સેવ નહીં થાય અને ટેસ્ટ ફરીથી શરૂ કરવો પડશે.</div>
+      <div class="warn-actions">
+        <button class="stay" type="button" onclick="closeOverlay('exitOverlay')">ટેસ્ટ ચાલુ રાખો</button>
+        <button class="leave" type="button" onclick="confirmExit()">ટેસ્ટ છોડો</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="submitOverlay">
+    <div class="sheet">
+      <div class="warn-icon" style="background:var(--purple-light);color:var(--purple)">?</div>
+      <div class="warn-title">ટેસ્ટ સબમિટ કરવો છે?</div>
+      <div class="warn-text" id="submitWarnText"></div>
+      <div class="warn-actions">
+        <button class="stay" type="button" onclick="closeOverlay('submitOverlay')">ના, ચાલુ રાખો</button>
+        <button class="leave" type="button" onclick="doSubmit()">હા, સબમિટ કરો</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="perfOverlay">
+    <div class="sheet">
+      <div class="sheet-head"><div class="sheet-title">Performance (વિષય-વાઈઝ)</div><button class="sheet-close" type="button" onclick="closeOverlay('perfOverlay')">✕</button></div>
+      <div class="sheet-body" id="perfBody"></div>
+      <button class="sheet-btn" type="button" onclick="closeOverlay('perfOverlay')">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="solOverlay">
+    <div class="sheet">
+      <div class="sheet-head"><div class="sheet-title">Solutions</div><button class="sheet-close" type="button" onclick="closeOverlay('solOverlay')">✕</button></div>
+      <div class="sheet-body" id="solBody"></div>
+      <button class="sheet-btn" type="button" onclick="closeOverlay('solOverlay')">Close</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const session = requireSession('index.html');
+const params = new URLSearchParams(location.search);
+const QUIZ_ID = params.get('quiz');
+if(!QUIZ_ID){ location.href = 'test-screen.html'; }
+
+let QUIZ = null;
+let QUESTIONS = [];
+let NEG_MARK = 0.25;
+let TIME_LIMIT = 30*60;
+let TOTAL = 0;
+
+let idx = 0;
+let timeLeft = 0;
+let timerId = null;
+let backGuardActive = false;
+let attemptId = null;
+let answers = [];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function closeOverlay(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ---------------- LOAD DATA ---------------- */
+async function loadQuiz(){
+  try{
+    const [{data:quiz, error:qzErr}, {data:questions, error:qErr}, {data:subjects, error:subErr}] = await Promise.all([
+      supabaseClient.from('quizzes').select('*').eq('id', QUIZ_ID).single(),
+      supabaseClient.from('questions').select('*').eq('quiz_id', QUIZ_ID).order('order_no'),
+      supabaseClient.from('subjects').select('code,name')
+    ]);
+    if(qzErr) throw qzErr;
+    if(qErr) throw qErr;
+
+    const subMap = {};
+    (subjects||[]).forEach(s=>{ subMap[s.code] = s.name; });
+
+    QUIZ = quiz;
+    QUESTIONS = (questions||[]).map(q=>({...q, subject_name: subMap[q.subject_code] || q.subject_code}));
+    TOTAL = QUESTIONS.length;
+    NEG_MARK = Number(quiz.negative_marking) || 0;
+    TIME_LIMIT = (quiz.time_limit_minutes || 30) * 60;
+
+    renderIntro();
+    show('screen-intro');
+  }catch(err){
+    console.error(err);
+    document.getElementById('screen-loading').innerHTML = '<div class="center-msg">ટેસ્ટ લોડ કરવામાં ભૂલ થઈ.<br>' + (err.message||'') + '</div>';
+  }
+}
+
+function renderIntro(){
+  document.getElementById('screen-intro').innerHTML =
+    '<div class="hero-card">'+
+      '<div class="hero-title">'+QUIZ.title+'</div>'+
+      '<p class="hero-desc">'+(QUIZ.description||'')+' દરેક ખોટા જવાબ માટે -'+NEG_MARK+' ગુણ કપાશે.</p>'+
+    '</div>'+
+    '<div class="stat-cards">'+
+      '<div class="stat-card"><div class="num">'+TOTAL+'</div><div class="lbl">કુલ પ્રશ્નો</div></div>'+
+      '<div class="stat-card"><div class="num">'+(QUIZ.time_limit_minutes)+' મિનિટ</div><div class="lbl">સમય મર્યાદા</div></div>'+
+    '</div>'+
+    '<div class="intro-actions"><button class="btn-primary" type="button" id="startBtn">ટેસ્ટ શરૂ કરો</button></div>';
+  document.getElementById('startBtn').addEventListener('click', startTest);
+}
+
+/* ---------------- START / TIMER ---------------- */
+async function startTest(){
+  try{
+    const { data, error } = await supabaseClient
+      .from('quiz_attempts')
+      .insert({ quiz_id: QUIZ_ID, user_id: session.id, status:'in_progress' })
+      .select().single();
+    if(error) throw error;
+    attemptId = data.id;
+  }catch(err){
+    console.error(err);
+    alert('ટેસ્ટ શરૂ કરવામાં ભૂલ થઈ. ફરી પ્રયત્ન કરો.');
+    return;
+  }
+
+  idx = 0;
+  timeLeft = TIME_LIMIT;
+  answers = QUESTIONS.map(()=>({selected:null, status:'skipped'}));
+  show('screen-test');
+  renderQuestion();
+  startTimer();
+  enableBackGuard();
+}
+function startTimer(){
+  clearInterval(timerId);
+  timerId = setInterval(()=>{
+    timeLeft--;
+    document.getElementById('timerDisplay').textContent = "Time: " + formatTime(timeLeft);
+    if(timeLeft<=0){ clearInterval(timerId); doSubmit(); }
+  },1000);
+}
+function formatTime(s){
+  s = Math.max(0,s);
+  const m = Math.floor(s/60), sec = s%60;
+  return String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0');
+}
+
+/* ---------------- BACK GUARD ---------------- */
+function enableBackGuard(){
+  if(backGuardActive) return;
+  backGuardActive = true;
+  try{ history.pushState({guard:true}, '', location.href); }catch(e){}
+  window.addEventListener('popstate', onPopState);
+}
+function disableBackGuard(){
+  backGuardActive = false;
+  window.removeEventListener('popstate', onPopState);
+}
+function onPopState(){
+  if(document.getElementById('screen-test').classList.contains('active')){
+    try{ history.pushState({guard:true}, '', location.href); }catch(e){}
+    document.getElementById('exitOverlay').classList.add('active');
+  }
+}
+function confirmExit(){
+  closeOverlay('exitOverlay');
+  clearInterval(timerId);
+  disableBackGuard();
+  location.href = 'test-screen.html';
+}
+
+/* ---------------- QUESTION RENDER ---------------- */
+function renderQuestion(){
+  const q = QUESTIONS[idx];
+  document.getElementById('subjectTag').textContent = q.subject_name;
+  document.getElementById('qCountDisplay').textContent = "Q "+(idx+1)+"/"+TOTAL;
+  document.getElementById('qText').textContent = q.question_text;
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach(letter=>{
+    const sel = answers[idx].selected === letter;
+    const div = document.createElement('div');
+    div.className = 'option'+(sel?' selected':'');
+    div.onclick = ()=>selectOption(letter);
+    const optText = q['option_'+letter.toLowerCase()];
+    div.innerHTML = '<div class="badge">'+letter+'</div><div class="otext">'+optText+'</div>';
+    opts.appendChild(div);
+  });
+}
+function selectOption(letter){
+  answers[idx].selected = letter;
+  if(answers[idx].status !== 'marked') answers[idx].status = 'saved';
+  renderQuestion();
+  persistAnswer(idx);
+}
+function saveNext(){
+  if(answers[idx].selected) answers[idx].status = 'saved';
+  persistAnswer(idx);
+  if(idx < TOTAL-1){ idx++; renderQuestion(); }
+}
+function markNext(){
+  answers[idx].status = 'marked';
+  persistAnswer(idx);
+  if(idx < TOTAL-1){ idx++; renderQuestion(); }
+}
+function nextQ(){ if(idx < TOTAL-1){ idx++; renderQuestion(); } }
+function prevQ(){ if(idx > 0){ idx--; renderQuestion(); } }
+
+// દરેક જવાબ question_attempts માં live save (fire-and-forget)
+function persistAnswer(i){
+  if(!attemptId) return;
+  const a = answers[i];
+  supabaseClient.from('question_attempts').upsert({
+    quiz_attempt_id: attemptId,
+    question_id: QUESTIONS[i].id,
+    selected_option: a.selected,
+    is_marked: a.status === 'marked'
+  }, { onConflict: 'quiz_attempt_id,question_id' }).then(({error})=>{
+    if(error) console.error('save answer failed', error);
+  });
+}
+
+/* ---------------- NAVIGATOR ---------------- */
+let navFilter = 'all';
+function openNavigator(){
+  navFilter = 'all';
+  document.querySelectorAll('#navTabs .tab').forEach(t=>t.classList.toggle('active', t.dataset.filter==='all'));
+  buildNavigator();
+  document.getElementById('navOverlay').classList.add('active');
+}
+document.getElementById('navTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.tab');
+  if(!btn) return;
+  navFilter = btn.dataset.filter;
+  document.querySelectorAll('#navTabs .tab').forEach(t=>t.classList.toggle('active', t===btn));
+  buildNavigator();
+});
+function groupBySubject(){
+  const map = new Map();
+  QUESTIONS.forEach((q,i)=>{
+    const label = q.subject_name;
+    if(!map.has(label)) map.set(label, []);
+    map.get(label).push(i);
+  });
+  return Array.from(map.entries()).map(([subject,idxs])=>({subject, idxs}));
+}
+function buildNavigator(){
+  const body = document.getElementById('navBody');
+  body.innerHTML = '';
+  groupBySubject().forEach(g=>{
+    const visible = g.idxs.filter(i=>{
+      const st = answers[i].status;
+      if(navFilter==='all') return true;
+      if(navFilter==='skipped') return st==='skipped';
+      if(navFilter==='marked') return st==='marked';
+      return true;
+    });
+    if(visible.length===0) return;
+    const block = document.createElement('div');
+    block.className = 'subj-block';
+    block.innerHTML = '<div class="subj-block-head"><span>'+g.subject+'</span><span>'+visible.length+' પ્રશ્નો</span></div>';
+    const grid = document.createElement('div');
+    grid.className = 'qgrid';
+    visible.forEach(i=>{
+      const st = answers[i].status;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'qnum '+(st==='saved'?'saved':st==='marked'?'marked':'')+(i===idx?' current':'');
+      btn.textContent = i+1;
+      btn.onclick = ()=>{ idx=i; renderQuestion(); closeOverlay('navOverlay'); };
+      grid.appendChild(btn);
+    });
+    block.appendChild(grid);
+    body.appendChild(block);
+  });
+}
+
+/* ---------------- SUBMIT ---------------- */
+function askSubmit(){
+  const unattempted = answers.filter(a=>a.selected===null).length;
+  document.getElementById('submitWarnText').textContent =
+    unattempted>0 ? unattempted+" પ્રશ્નો હજુ જવાબ વગરના છે. તેમ છતાં સબમિટ કરવું છે?" : "તમે તમામ પ્રશ્નોના જવાબ આપી દીધા છે. સબમિટ કરો?";
+  document.getElementById('submitOverlay').classList.add('active');
+}
+async function doSubmit(){
+  closeOverlay('submitOverlay');
+  clearInterval(timerId);
+  disableBackGuard();
+
+  const stats = computeStats();
+  const timeTaken = TIME_LIMIT - timeLeft;
+
+  try{
+    await supabaseClient.from('quiz_attempts').update({
+      submitted_at: new Date().toISOString(),
+      time_taken_seconds: timeTaken,
+      total_right: stats.right,
+      total_wrong: stats.wrong,
+      total_skipped: stats.skip,
+      total_marked: stats.mark,
+      score: stats.score,
+      status: 'submitted'
+    }).eq('id', attemptId);
+  }catch(err){ console.error('submit update failed', err); }
+
+  renderResult(stats, timeTaken);
+  show('screen-result');
+}
+
+/* ---------------- RESULT ---------------- */
+function computeStats(){
+  let right=0, wrong=0, skip=0, mark=0, score=0;
+  QUESTIONS.forEach((q,i)=>{
+    const a = answers[i];
+    if(a.selected){ score += (a.selected===q.correct_option) ? 1 : -NEG_MARK; }
+    if(a.status==='marked'){ mark++; }
+    else if(a.selected===null){ skip++; }
+    else if(a.selected===q.correct_option){ right++; }
+    else { wrong++; }
+  });
+  return { right, wrong, skip, mark, score: Math.round(score*100)/100 };
+}
+function renderResult(stats, timeTaken){
+  document.getElementById('resScore').textContent = stats.score;
+  document.getElementById('resOutOf').textContent = 'out of '+TOTAL;
+  document.getElementById('resTime').textContent = "Time Taken: "+Math.floor(timeTaken/60)+"m "+(timeTaken%60)+"s";
+  document.getElementById('resRight').textContent = stats.right;
+  document.getElementById('resWrong').textContent = stats.wrong;
+  document.getElementById('resSkip').textContent = stats.skip;
+  document.getElementById('resMark').textContent = stats.mark;
+
+  const pct = Math.max(0,(stats.score/TOTAL)*100);
+  const badge = document.getElementById('resBadge');
+  if(pct>=60){ badge.textContent='Good Job'; badge.classList.add('pass'); }
+  else{ badge.textContent='Needs Work'; badge.classList.remove('pass'); }
+
+  const cs = getComputedStyle(document.documentElement);
+  const green=cs.getPropertyValue('--green').trim(), red=cs.getPropertyValue('--red').trim(),
+        grey=cs.getPropertyValue('--grey').trim(), purple=cs.getPropertyValue('--purple').trim();
+  const segs = [{v:stats.right,col:green},{v:stats.wrong,col:red},{v:stats.skip,col:grey},{v:stats.mark,col:purple}];
+  let acc=0, stops=[];
+  segs.forEach(seg=>{
+    const start=(acc/TOTAL)*360; acc+=seg.v; const end=(acc/TOTAL)*360;
+    if(seg.v>0) stops.push(seg.col+" "+start+"deg "+end+"deg");
+  });
+  document.getElementById('donutCounts').style.background = stops.length ? "conic-gradient("+stops.join(',')+")" : grey;
+  document.getElementById('donutTotalTxt').textContent = TOTAL;
+
+  const clamped = Math.min(100, pct);
+  document.getElementById('donutPct').style.background = "conic-gradient("+purple+" 0deg "+(clamped*3.6)+"deg, "+grey+" "+(clamped*3.6)+"deg 360deg)";
+  document.getElementById('pctText').textContent = Math.round(pct)+"%";
+}
+function goToList(){ location.href = 'test-screen.html'; }
+
+/* ---------------- PERFORMANCE ---------------- */
+function openPerformance(){
+  const body = document.getElementById('perfBody');
+  body.innerHTML = '';
+  groupBySubject().forEach(g=>{
+    let right=0, wrong=0, skip=0;
+    g.idxs.forEach(i=>{
+      const a=answers[i], q=QUESTIONS[i];
+      if(a.selected===null) skip++;
+      else if(a.selected===q.correct_option) right++;
+      else wrong++;
+    });
+    const row = document.createElement('div');
+    row.className = 'perf-row';
+    row.innerHTML = '<div class="perf-name">'+g.subject+'<small>કુલ '+g.idxs.length+' પ્રશ્નો</small></div>'+
+      '<div class="perf-nums"><span class="pill g">'+right+' ✓</span><span class="pill r">'+wrong+' ✕</span><span class="pill s">'+skip+' —</span></div>';
+    body.appendChild(row);
+  });
+  document.getElementById('perfOverlay').classList.add('active');
+}
+
+/* ---------------- SOLUTION ---------------- */
+function openSolution(){
+  const body = document.getElementById('solBody');
+  body.innerHTML = '';
+  QUESTIONS.forEach((q,i)=>{
+    const a = answers[i];
+    let optsHtml = '';
+    ['A','B','C','D'].forEach(letter=>{
+      let cls = '';
+      if(letter===q.correct_option) cls='correct';
+      else if(letter===a.selected) cls='wrong-pick';
+      const optText = q['option_'+letter.toLowerCase()];
+      optsHtml += '<div class="sol-opt '+cls+'">'+letter+'. '+optText+(letter===q.correct_option?' ✓':(letter===a.selected?' ✕ (તમારો જવાબ)':''))+'</div>';
+    });
+    const item = document.createElement('div');
+    item.className = 'sol-item';
+    item.innerHTML = '<div class="sol-q">'+(i+1)+'. '+q.question_text+'</div>'+optsHtml+(q.solution?'<div class="sol-explain">'+q.solution+'</div>':'');
+    body.appendChild(item);
+  });
+  document.getElementById('solOverlay').classList.add('active');
+}
+
+loadQuiz();
+</script>
+</body>
+</html>

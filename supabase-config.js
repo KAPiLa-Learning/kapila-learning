@@ -2,8 +2,8 @@
 // Supabase credentials — તમારા પ્રોજેક્ટ મુજબ બદલો
 // (Supabase Dashboard → Project Settings → API)
 // ============================================================
-const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
+const SUPABASE_URL = "https://arlvoarkbtteywpobkmb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHZvYXJrYnR0ZXl3cG9ia21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyOTkxNjYsImV4cCI6MjEwMzg3NTE2Nn0.zzf_TEW6VCOy-Rvdk_JTmWomeSkzaaahcIRl8B-o1Do";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

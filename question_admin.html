@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="gu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CBRT EXAM Question Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d8dee8;
+      --brand: #0b4ea2;
+      --brand-dark: #073670;
+      --bg: #eef4f8;
+      --card: #ffffff;
+      --danger: #b42318;
+      --ok: #087443;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans Gujarati", "Nirmala UI", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--brand-dark);
+      color: white;
+      padding: 14px 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .16);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    header p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      opacity: .86;
+    }
+    main {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 11px;
+      font: inherit;
+      background: white;
+      color: var(--ink);
+    }
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .58;
+    }
+    .primary { background: var(--brand); color: white; }
+    .secondary { background: #e7eef8; color: var(--brand-dark); }
+    .danger { background: #fee4e2; color: var(--danger); }
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .row > * { flex: 1; }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .actions button { flex: 1; min-width: 130px; }
+    .status {
+      margin-top: 10px;
+      min-height: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--danger); }
+    .question-list {
+      display: grid;
+      gap: 8px;
+      max-height: 68vh;
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .question-item {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+    .question-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--brand-dark);
+    }
+    .question-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .preview {
+      display: none;
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 8px 0 0;
+    }
+    @media (max-width: 820px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+      .question-list { max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CBRT EXAM Question Admin</h1>
+    <p>Powered by Concept Clear | Developer: Devendra Joshi +91 99258 58057</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Exam</h2>
+      <label for="examSelect">Select Exam</label>
+      <select id="examSelect"></select>
+
+      <label for="examTitle">New Exam Title</label>
+      <input id="examTitle" placeholder="CBRT Mock Test 1">
+
+      <div class="row">
+        <div>
+          <label for="duration">Minutes</label>
+          <input id="duration" type="number" value="60" min="1">
+        </div>
+        <div>
+          <label for="negative">Negative</label>
+          <input id="negative" type="number" value="0.25" step="0.01">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="createExamBtn">Create Exam</button>
+        <button class="secondary" id="reloadBtn">Reload</button>
+      </div>
+
+      <p class="hint">Math mate: \(x^2 - 5x + 6 = 0\). Image upload karo to URL question_image_url ma save thashe.</p>
+      <div class="status" id="examStatus"></div>
+    </section>
+
+    <section>
+      <h2 id="formTitle">Add Question</h2>
+      <input id="questionId" type="hidden">
+
+      <div class="row">
+        <div>
+          <label for="questionNumber">Question No.</label>
+          <input id="questionNumber" type="number" min="1">
+        </div>
+        <div>
+          <label for="subjectCode">Subject Code</label>
+          <input id="subjectCode" placeholder="MATHS" value="MATHS">
+        </div>
+      </div>
+
+      <label for="subjectName">Subject Name</label>
+      <input id="subjectName" placeholder="Maths" value="Maths">
+
+      <label for="questionText">Question Text</label>
+      <textarea id="questionText" placeholder="Question lakhો. Math mate \(x^2\) use karo."></textarea>
+
+      <label for="imageFile">Upload Figure / Image</label>
+      <input id="imageFile" type="file" accept="image/*">
+      <img id="imagePreview" class="preview" alt="Question image preview">
+
+      <label for="imageUrl">Image URL</label>
+      <input id="imageUrl" placeholder="Upload karo athva direct image URL paste karo">
+
+      <div class="row">
+        <div>
+          <label for="optionA">Option A</label>
+          <textarea id="optionA"></textarea>
+        </div>
+        <div>
+          <label for="optionB">Option B</label>
+          <textarea id="optionB"></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="optionC">Option C</label>
+          <textarea id="optionC"></textarea>
+        </div>
+        <div>
+          <label for="optionD">Option D</label>
+          <textarea id="optionD"></textarea>
+        </div>
+      </div>
+
+      <label for="correctOption">Correct Option</label>
+      <select id="correctOption">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
+
+      <div class="actions">
+        <button class="primary" id="saveQuestionBtn">Save Question</button>
+        <button class="secondary" id="newQuestionBtn">New / Clear</button>
+        <button class="danger" id="deleteQuestionBtn">Delete</button>
+      </div>
+      <div class="status" id="questionStatus"></div>
+    </section>
+
+    <section style="grid-column: 1 / -1;">
+      <h2>Questions</h2>
+      <div class="question-list" id="questionList"></div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://arlvoarkbtteywpobkmb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHZvYXJrYnR0ZXl3cG9ia21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyOTkxNjYsImV4cCI6MjEwMzg3NTE2Nn0.zzf_TEW6VCOy-Rvdk_JTmWomeSkzaaahcIRl8B-o1Do';
+    const BUCKET = 'question-images';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const $ = (id) => document.getElementById(id);
+    let exams = [];
+    let questions = [];
+
+    function setStatus(id, text, type = '') {
+      const el = $(id);
+      el.textContent = text;
+      el.className = `status ${type}`;
+    }
+
+    function selectedExamId() {
+      return $('examSelect').value;
+    }
+
+    async function loadExams() {
+      setStatus('examStatus', 'Loading exams...');
+      const { data, error } = await db
+        .from('cbrt_exams')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        setStatus('examStatus', error.message, 'err');
+        return;
+      }
+      exams = data || [];
+      $('examSelect').innerHTML = exams.map((exam) =>
+        `<option value="${exam.id}">${escapeHtml(exam.title)}</option>`
+      ).join('');
+      setStatus('examStatus', exams.length ? `${exams.length} exams loaded` : 'No exam found', 'ok');
+      await loadQuestions();
+    }
+
+    async function createExam() {
+      const title = $('examTitle').value.trim();
+      if (!title) {
+        setStatus('examStatus', 'Exam title required', 'err');
+        return;
+      }
+      setStatus('examStatus', 'Creating exam...');
+      const { error } = await db.from('cbrt_exams').insert({
+        title,
+        duration_minutes: Number($('duration').value || 60),
+        negative_marking: Number($('negative').value || 0),
+        is_active: true,
+      });
+      if (error) {
+        setStatus('examStatus', error.message, 'err');
+        return;
+      }
+      $('examTitle').value = '';
+      setStatus('examStatus', 'Exam created', 'ok');
+      await loadExams();
+    }
+
+    async function loadQuestions() {
+      const examId = selectedExamId();
+      if (!examId) {
+        $('questionList').innerHTML = '';
+        return;
+      }
+      setStatus('questionStatus', 'Loading questions...');
+      const { data, error } = await db
+        .from('cbrt_questions')
+        .select('*')
+        .eq('exam_id', examId)
+        .order('question_number', { ascending: true });
+      if (error) {
+        setStatus('questionStatus', error.message, 'err');
+        return;
+      }
+      questions = data || [];
+      renderQuestionList();
+      setStatus('questionStatus', `${questions.length} questions loaded`, 'ok');
+    }
+
+    function renderQuestionList() {
+      $('questionList').innerHTML = questions.map((q) => `
+        <div class="question-item" onclick="editQuestion('${q.id}')">
+          <strong>Q.${q.question_number} | ${escapeHtml(q.subject_code)} | Answer: ${escapeHtml(q.correct_option)}</strong>
+          <p>${escapeHtml((q.question_text || '').slice(0, 180))}</p>
+          ${q.question_image_url ? '<p>Image attached</p>' : ''}
+        </div>
+      `).join('');
+    }
+
+    window.editQuestion = function(id) {
+      const q = questions.find((item) => item.id === id);
+      if (!q) return;
+      $('formTitle').textContent = `Edit Question ${q.question_number}`;
+      $('questionId').value = q.id;
+      $('questionNumber').value = q.question_number;
+      $('subjectCode').value = q.subject_code || '';
+      $('subjectName').value = q.subject_code || '';
+      $('questionText').value = q.question_text || '';
+      $('imageUrl').value = q.question_image_url || '';
+      $('optionA').value = q.option_a || '';
+      $('optionB').value = q.option_b || '';
+      $('optionC').value = q.option_c || '';
+      $('optionD').value = q.option_d || '';
+      $('correctOption').value = q.correct_option || 'A';
+      showPreview(q.question_image_url || '');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    async function ensureSubject() {
+      const code = $('subjectCode').value.trim().toUpperCase();
+      const name = $('subjectName').value.trim() || code;
+      if (!code) throw new Error('Subject code required');
+      const { error } = await db
+        .from('cbrt_subjects')
+        .upsert({ code, name }, { onConflict: 'code' });
+      if (error) throw error;
+      $('subjectCode').value = code;
+      return code;
+    }
+
+    async function uploadImageIfSelected() {
+      const file = $('imageFile').files[0];
+      if (!file) return $('imageUrl').value.trim();
+      const examId = selectedExamId() || 'exam';
+      const questionNo = $('questionNumber').value || Date.now();
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+      const path = `${examId}/q${questionNo}_${Date.now()}.${ext}`;
+      const { error } = await db.storage.from(BUCKET).upload(path, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+      if (error) throw error;
+      const { data } = db.storage.from(BUCKET).getPublicUrl(path);
+      $('imageUrl').value = data.publicUrl;
+      return data.publicUrl;
+    }
+
+    async function saveQuestion() {
+      const examId = selectedExamId();
+      if (!examId) {
+        setStatus('questionStatus', 'Pehla exam select/create karo', 'err');
+        return;
+      }
+      try {
+        setStatus('questionStatus', 'Saving...');
+        const subjectCode = await ensureSubject();
+        const imageUrl = await uploadImageIfSelected();
+        const row = {
+          exam_id: examId,
+          subject_code: subjectCode,
+          question_number: Number($('questionNumber').value),
+          question_text: $('questionText').value.trim(),
+          question_image_url: imageUrl || null,
+          option_a: $('optionA').value.trim(),
+          option_b: $('optionB').value.trim(),
+          option_c: $('optionC').value.trim(),
+          option_d: $('optionD').value.trim(),
+          correct_option: $('correctOption').value,
+        };
+        if (!row.question_number || !row.question_text || !row.option_a || !row.option_b || !row.option_c || !row.option_d) {
+          throw new Error('Question number, text and all options required');
+        }
+        const id = $('questionId').value;
+        const result = id
+          ? await db.from('cbrt_questions').update(row).eq('id', id)
+          : await db.from('cbrt_questions').insert(row);
+        if (result.error) throw result.error;
+        setStatus('questionStatus', id ? 'Question updated' : 'Question added', 'ok');
+        clearForm();
+        await loadQuestions();
+      } catch (error) {
+        setStatus('questionStatus', error.message, 'err');
+      }
+    }
+
+    async function deleteQuestion() {
+      const id = $('questionId').value;
+      if (!id) {
+        setStatus('questionStatus', 'Edit question select karo pachhi delete thai', 'err');
+        return;
+      }
+      if (!confirm('Aa question delete karvo chhe?')) return;
+      const { error } = await db.from('cbrt_questions').delete().eq('id', id);
+      if (error) {
+        setStatus('questionStatus', error.message, 'err');
+        return;
+      }
+      setStatus('questionStatus', 'Question deleted', 'ok');
+      clearForm();
+      await loadQuestions();
+    }
+
+    function clearForm() {
+      $('formTitle').textContent = 'Add Question';
+      $('questionId').value = '';
+      $('questionNumber').value = '';
+      $('questionText').value = '';
+      $('imageFile').value = '';
+      $('imageUrl').value = '';
+      $('optionA').value = '';
+      $('optionB').value = '';
+      $('optionC').value = '';
+      $('optionD').value = '';
+      $('correctOption').value = 'A';
+      showPreview('');
+    }
+
+    function showPreview(url) {
+      const img = $('imagePreview');
+      img.style.display = url ? 'block' : 'none';
+      if (url) img.src = url;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    $('createExamBtn').addEventListener('click', createExam);
+    $('reloadBtn').addEventListener('click', loadExams);
+    $('examSelect').addEventListener('change', loadQuestions);
+    $('saveQuestionBtn').addEventListener('click', saveQuestion);
+    $('newQuestionBtn').addEventListener('click', clearForm);
+    $('deleteQuestionBtn').addEventListener('click', deleteQuestion);
+    $('imageUrl').addEventListener('input', (event) => showPreview(event.target.value.trim()));
+    $('imageFile').addEventListener('change', () => {
+      const file = $('imageFile').files[0];
+      showPreview(file ? URL.createObjectURL(file) : $('imageUrl').value.trim());
+    });
+
+    loadExams();
+  </script>
+</body>
+</html>

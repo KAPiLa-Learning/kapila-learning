@@ -131,6 +131,10 @@
       border-radius: 7px;
       padding: 10px;
       background: #fbfdff;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
     }
     .question-item strong {
       display: block;
@@ -152,6 +156,14 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       background: #f8fafc;
+    }
+    .question-thumb {
+      width: 74px;
+      height: 58px;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: white;
     }
     .hint {
       font-size: 12px;
@@ -213,13 +225,10 @@
           <input id="questionNumber" type="number" min="1">
         </div>
         <div>
-          <label for="subjectCode">Subject Code</label>
-          <input id="subjectCode" placeholder="MATHS" value="MATHS">
+          <label for="subjectCode">Subject</label>
+          <select id="subjectCode"></select>
         </div>
       </div>
-
-      <label for="subjectName">Subject Name</label>
-      <input id="subjectName" placeholder="Maths" value="Maths">
 
       <label for="questionText">Question Text</label>
       <textarea id="questionText" placeholder="Question lakhો. Math mate \(x^2\) use karo."></textarea>
@@ -260,6 +269,9 @@
         <option value="D">D</option>
       </select>
 
+      <label for="solutionText">Solution</label>
+      <textarea id="solutionText" placeholder="Solution / explanation lakhો. Math mate \(x^2\) use kari shako."></textarea>
+
       <div class="actions">
         <button class="primary" id="saveQuestionBtn">Save Question</button>
         <button class="secondary" id="newQuestionBtn">New / Clear</button>
@@ -282,6 +294,7 @@
 
     const $ = (id) => document.getElementById(id);
     let exams = [];
+    let subjects = [];
     let questions = [];
 
     function setStatus(id, text, type = '') {
@@ -292,6 +305,29 @@
 
     function selectedExamId() {
       return $('examSelect').value;
+    }
+
+    function nextQuestionNumber() {
+      if (!questions.length) return 1;
+      return Math.max(...questions.map((q) => Number(q.question_number) || 0)) + 1;
+    }
+
+    async function loadSubjects() {
+      const { data, error } = await db
+        .from('cbrt_subjects')
+        .select('*')
+        .order('code', { ascending: true });
+      if (error) {
+        setStatus('questionStatus', `Subject load error: ${error.message}`, 'err');
+        return;
+      }
+      subjects = data || [];
+      $('subjectCode').innerHTML = subjects.map((subject) =>
+        `<option value="${escapeHtml(subject.code)}">${escapeHtml(subject.name)} (${escapeHtml(subject.code)})</option>`
+      ).join('');
+      if (!subjects.length) {
+        $('subjectCode').innerHTML = '<option value="">No subjects found</option>';
+      }
     }
 
     async function loadExams() {
@@ -309,6 +345,7 @@
         `<option value="${exam.id}">${escapeHtml(exam.title)}</option>`
       ).join('');
       setStatus('examStatus', exams.length ? `${exams.length} exams loaded` : 'No exam found', 'ok');
+      await loadSubjects();
       await loadQuestions();
     }
 
@@ -353,14 +390,20 @@
       questions = data || [];
       renderQuestionList();
       setStatus('questionStatus', `${questions.length} questions loaded`, 'ok');
+      if (!$('questionId').value) {
+        $('questionNumber').value = nextQuestionNumber();
+      }
     }
 
     function renderQuestionList() {
       $('questionList').innerHTML = questions.map((q) => `
         <div class="question-item" onclick="editQuestion('${q.id}')">
-          <strong>Q.${q.question_number} | ${escapeHtml(q.subject_code)} | Answer: ${escapeHtml(q.correct_option)}</strong>
-          <p>${escapeHtml((q.question_text || '').slice(0, 180))}</p>
-          ${q.question_image_url ? '<p>Image attached</p>' : ''}
+          <div>
+            <strong>Q.${q.question_number} | ${escapeHtml(q.subject_code)} | Answer: ${escapeHtml(q.correct_option)}</strong>
+            <p>${escapeHtml((q.question_text || '').slice(0, 180))}</p>
+            ${q.solution_text ? '<p>Solution added</p>' : ''}
+          </div>
+          ${q.question_image_url ? `<img class="question-thumb" src="${escapeHtml(q.question_image_url)}" alt="Q.${q.question_number} image">` : ''}
         </div>
       `).join('');
     }
@@ -372,7 +415,6 @@
       $('questionId').value = q.id;
       $('questionNumber').value = q.question_number;
       $('subjectCode').value = q.subject_code || '';
-      $('subjectName').value = q.subject_code || '';
       $('questionText').value = q.question_text || '';
       $('imageUrl').value = q.question_image_url || '';
       $('optionA').value = q.option_a || '';
@@ -380,19 +422,14 @@
       $('optionC').value = q.option_c || '';
       $('optionD').value = q.option_d || '';
       $('correctOption').value = q.correct_option || 'A';
+      $('solutionText').value = q.solution_text || '';
       showPreview(q.question_image_url || '');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    async function ensureSubject() {
-      const code = $('subjectCode').value.trim().toUpperCase();
-      const name = $('subjectName').value.trim() || code;
+    function selectedSubjectCode() {
+      const code = $('subjectCode').value.trim();
       if (!code) throw new Error('Subject code required');
-      const { error } = await db
-        .from('cbrt_subjects')
-        .upsert({ code, name }, { onConflict: 'code' });
-      if (error) throw error;
-      $('subjectCode').value = code;
       return code;
     }
 
@@ -421,12 +458,20 @@
       }
       try {
         setStatus('questionStatus', 'Saving...');
-        const subjectCode = await ensureSubject();
+        const id = $('questionId').value;
+        const questionNumber = Number($('questionNumber').value);
+        const duplicate = questions.find((q) =>
+          Number(q.question_number) === questionNumber && q.id !== id
+        );
+        if (duplicate) {
+          throw new Error(`Question number ${questionNumber} already exists. Edit karvu hoy to niche list mathi Q.${questionNumber} select karo.`);
+        }
+        const subjectCode = selectedSubjectCode();
         const imageUrl = await uploadImageIfSelected();
         const row = {
           exam_id: examId,
           subject_code: subjectCode,
-          question_number: Number($('questionNumber').value),
+          question_number: questionNumber,
           question_text: $('questionText').value.trim(),
           question_image_url: imageUrl || null,
           option_a: $('optionA').value.trim(),
@@ -434,11 +479,11 @@
           option_c: $('optionC').value.trim(),
           option_d: $('optionD').value.trim(),
           correct_option: $('correctOption').value,
+          solution_text: $('solutionText').value.trim() || null,
         };
         if (!row.question_number || !row.question_text || !row.option_a || !row.option_b || !row.option_c || !row.option_d) {
           throw new Error('Question number, text and all options required');
         }
-        const id = $('questionId').value;
         const result = id
           ? await db.from('cbrt_questions').update(row).eq('id', id)
           : await db.from('cbrt_questions').insert(row);
@@ -471,7 +516,7 @@
     function clearForm() {
       $('formTitle').textContent = 'Add Question';
       $('questionId').value = '';
-      $('questionNumber').value = '';
+      $('questionNumber').value = nextQuestionNumber();
       $('questionText').value = '';
       $('imageFile').value = '';
       $('imageUrl').value = '';
@@ -480,6 +525,7 @@
       $('optionC').value = '';
       $('optionD').value = '';
       $('correctOption').value = 'A';
+      $('solutionText').value = '';
       showPreview('');
     }
 
